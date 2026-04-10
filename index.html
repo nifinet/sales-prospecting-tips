@@ -542,14 +542,14 @@
       // Display values
       document.getElementById('calc-team-val').textContent = team;
       document.getElementById('calc-hours-val').textContent = hours + 'h';
-      document.getElementById('calc-deal-val').textContent = '$' + (deal >= 1000 ? (deal/1000) + 'K' : deal);
+      document.getElementById('calc-deal-val').textContent = formatNum(deal);
 
-      // Calculations
+      // Calculations — all integers, no floating point
       // Automation saves ~70% of manual prospecting time
       const savedHoursWeek = Math.round(team * hours * 0.70);
-      const savedHoursMonth = savedHoursWeek * 4.3;
+      const savedHoursMonth = Math.round(savedHoursWeek * 4);
 
-      // Each recovered hour = ~0.8 extra meetings (prospecting, follow-ups, outreach)
+      // Each recovered hour = ~0.16 extra meetings (prospecting, follow-ups, outreach)
       const extraMeetingsMonth = Math.round(savedHoursMonth * 0.16);
 
       // ~25% of meetings convert to qualified pipeline
@@ -559,36 +559,26 @@
       const overloopCostQuarter = team * 49 * 3;
       const roi = Math.round(pipelinePerQuarter / overloopCostQuarter);
 
-      // Animate results
-      animateValue('res-hours', savedHoursMonth, 'h');
-      animateValue('res-meetings', extraMeetingsMonth, '');
-      animateValue('res-pipeline', pipelinePerQuarter, '$', true);
-      animateValue('res-roi', roi, 'x');
+      // Update results
+      document.getElementById('res-hours').textContent = savedHoursMonth + 'h';
+      document.getElementById('res-meetings').textContent = extraMeetingsMonth;
+      document.getElementById('res-pipeline').textContent = formatNum(pipelinePerQuarter);
+      document.getElementById('res-roi').textContent = roi + 'x';
 
       // Breakdown
       document.getElementById('breakdown-text').innerHTML =
         `Your ${team} reps spend ${hours}h/week each on manual tasks. ` +
-        `Automation recovers ~70% of that = <strong>${savedHoursWeek}h/week</strong> (${Math.round(savedHoursMonth)}h/month). ` +
+        `Automation recovers ~70% of that = <strong>${savedHoursWeek}h/week</strong> (${savedHoursMonth}h/month). ` +
         `That recovered time translates to ~<strong>${extraMeetingsMonth} extra meetings/month</strong>. ` +
-        `At 25% pipeline conversion and $${(deal/1000).toFixed(0)}K avg deal, that's <strong>$${formatNum(pipelinePerQuarter)} in pipeline per quarter</strong>. ` +
-        `Overloop cost: ${team} seats × $49/mo × 3 months = $${formatNum(overloopCostQuarter)}/quarter. ` +
+        `At 25% pipeline conversion and ${formatNum(deal)} avg deal, that's <strong>${formatNum(pipelinePerQuarter)} in pipeline per quarter</strong>. ` +
+        `Overloop cost: ${team} seats x $49/mo x 3 months = ${formatNum(overloopCostQuarter)}/quarter. ` +
         `<strong>ROI: ${roi}x.</strong>`;
     }
 
-    function animateValue(id, target, suffix, isCurrency) {
-      const el = document.getElementById(id);
-      const prefix = isCurrency ? '$' : '';
-      const display = isCurrency ? formatNum(target) : target;
-      el.textContent = prefix + display + suffix;
-      el.style.transform = 'scale(1.05)';
-      el.style.transition = 'transform 0.2s';
-      setTimeout(() => el.style.transform = 'scale(1)', 200);
-    }
-
     function formatNum(n) {
-      if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
-      if (n >= 1000) return (n/1000).toFixed(0) + 'K';
-      return n.toString();
+      if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+      if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
+      return '$' + n;
     }
 
     // Init
